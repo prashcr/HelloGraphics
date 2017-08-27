@@ -39,6 +39,8 @@ int main()
 	unsigned int vertexArrayObject = createRectangleVertexArrayObject();
 	unsigned int shaderProgram = createShaderProgram();
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
