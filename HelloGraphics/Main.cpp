@@ -8,6 +8,7 @@ GLFWwindow* createWindow();
 void processInput(GLFWwindow* window);
 void clearWindow();
 unsigned int createTriangleVertexArrayObject();
+unsigned int createRectangleVertexArrayObject();
 unsigned int createShaderProgram();
 unsigned int createShader(const char* shaderSource, GLenum type);
 void onSetFramebufferSize(GLFWwindow* window, int width, int height);
@@ -35,7 +36,7 @@ int main()
 		return -1;
 	}
 
-	unsigned int vertexArrayObject = createTriangleVertexArrayObject();
+	unsigned int vertexArrayObject = createRectangleVertexArrayObject();
 	unsigned int shaderProgram = createShaderProgram();
 
 	while (!glfwWindowShouldClose(window))
@@ -46,7 +47,7 @@ int main()
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(vertexArrayObject);
-		glDrawArrays(GL_TRIANGLES, 0, triangleVtxCount);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -99,6 +100,40 @@ unsigned int createTriangleVertexArrayObject()
 	glGenBuffers(1, &vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, triangleVtxCount, GL_FLOAT, GL_FALSE, triangleVtxCount * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	return vertexArrayObject;
+}
+
+unsigned int createRectangleVertexArrayObject()
+{
+	const float vertices[] = {
+		-0.5, -0.5, 0.0f, // bottom left
+		-0.5, 0.5, 0.0f, // top left
+		0.5, -0.5, 0.0f, // bottom right
+		0.5, 0.5, 0.0f // top right
+	};
+
+	const unsigned int indices[] = {
+		0, 1, 2, // first triangle
+		1, 2, 3 // second triangle
+	};
+
+	unsigned int vertexArrayObject;
+	glGenVertexArrays(1, &vertexArrayObject);
+	glBindVertexArray(vertexArrayObject);
+
+	unsigned int vertexBufferObject;
+	glGenBuffers(1, &vertexBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	unsigned int elementBufferObject;
+	glGenBuffers(1, &elementBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, triangleVtxCount, GL_FLOAT, GL_FALSE, triangleVtxCount * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
