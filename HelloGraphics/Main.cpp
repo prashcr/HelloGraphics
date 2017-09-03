@@ -7,7 +7,7 @@ void glfwInitialize();
 GLFWwindow* createWindow();
 void processInput(GLFWwindow* window);
 void clearWindow();
-unsigned int createVertexArrayObject();
+unsigned int createVertexArrayObject(const float vertices[], unsigned int bufferSize);
 unsigned int createShaderProgram();
 unsigned int createShader(const char* shaderSource, GLenum type);
 void onSetFramebufferSize(GLFWwindow* window, int width, int height);
@@ -36,7 +36,22 @@ int main()
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	unsigned int vertexArrayObject = createVertexArrayObject();
+	const float vertices1[] = {
+		// first triangle
+		-0.9f, -0.5f, 0.0f, // bottom left
+		0.0f, -0.5f, 0.0f, // bottom right
+		-0.45f, 0.5f, 0.0f, // top center
+	};
+
+	const float vertices2[] = {
+		// second triangle
+		0.0f, -0.5f, 0.0f, // bottom left
+		0.9f, -0.5f, 0.0f, // bottom right
+		0.45f, 0.5f, 0.0f, // top center
+	};
+
+	unsigned int triangle1 = createVertexArrayObject(vertices1, sizeof(vertices1));
+	unsigned int triangle2 = createVertexArrayObject(vertices2, sizeof(vertices2));
 	unsigned int shaderProgram = createShaderProgram();
 
 	while (!glfwWindowShouldClose(window))
@@ -46,8 +61,10 @@ int main()
 		clearWindow();
 
 		glUseProgram(shaderProgram);
-		glBindVertexArray(vertexArrayObject);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(triangle1);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(triangle2);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -84,19 +101,8 @@ void clearWindow()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-unsigned int createVertexArrayObject()
+unsigned int createVertexArrayObject(const float vertices[], unsigned int bufferSize)
 {
-	const float vertices[] = {
-		// first triangle
-		-0.9f, -0.5f, 0.0f, // bottom left
-		0.0f, -0.5f, 0.0f, // bottom right
-		-0.45f, 0.5f, 0.0f, // top center
-		// second triangle
-		0.0f, -0.5f, 0.0f, // bottom left
-		0.9f, -0.5f, 0.0f, // bottom right
-		0.45f, 0.5f, 0.0f, // top center
-	};
-
 	unsigned int vertexArrayObject;
 	glGenVertexArrays(1, &vertexArrayObject);
 	glBindVertexArray(vertexArrayObject);
@@ -104,7 +110,7 @@ unsigned int createVertexArrayObject()
 	unsigned int vertexBufferObject;
 	glGenBuffers(1, &vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, bufferSize, vertices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
