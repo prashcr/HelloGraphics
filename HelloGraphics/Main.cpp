@@ -9,6 +9,7 @@ void processInput(GLFWwindow* window);
 void clearWindow();
 unsigned int createVertexArrayObject(const float vertices[], unsigned int bufferSize);
 unsigned int createShaderProgram();
+unsigned int createYellowShaderProgram();
 unsigned int createShader(const char* shaderSource, GLenum type);
 void onSetFramebufferSize(GLFWwindow* window, int width, int height);
 
@@ -53,6 +54,7 @@ int main()
 	unsigned int triangle1 = createVertexArrayObject(vertices1, sizeof(vertices1));
 	unsigned int triangle2 = createVertexArrayObject(vertices2, sizeof(vertices2));
 	unsigned int shaderProgram = createShaderProgram();
+	unsigned int yellowShaderProgram = createYellowShaderProgram();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -63,6 +65,7 @@ int main()
 		glUseProgram(shaderProgram);
 		glBindVertexArray(triangle1);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glUseProgram(yellowShaderProgram);
 		glBindVertexArray(triangle2);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
@@ -138,6 +141,51 @@ out vec4 FragColor;
 void main()
 {
 	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}
+)";
+	unsigned int fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+
+	unsigned int shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+
+	glLinkProgram(shaderProgram);
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
+	int success;
+	char infoLog[512];
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	return shaderProgram;
+}
+
+unsigned int createYellowShaderProgram()
+{
+	const char* vertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);
+}
+)";
+	unsigned int vertexShader = createShader(vertexShaderSource, GL_VERTEX_SHADER);
+
+	const char* fragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColor;
+
+void main()
+{
+	FragColor = vec4(1.0f, 1.0f, 0.1f, 1.0f);
 }
 )";
 	unsigned int fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
