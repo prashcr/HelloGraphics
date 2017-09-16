@@ -112,20 +112,25 @@ unsigned int createShaderProgram()
 #version 330 core
 layout (location = 0) in vec3 aPos;
 
+out vec4 vertexColor;
+
 void main()
 {
-	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);
+	gl_Position = vec4(aPos, 1.0f); // directly give a vec3 to vec4's constructor
+	vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f); // dark red
 }
 )";
 	unsigned int vertexShader = createShader(vertexShaderSource, GL_VERTEX_SHADER);
 
 	const char* fragmentShaderSource = R"(
 #version 330 core
+in vec4 vertexColor;
+
 out vec4 FragColor;
 
 void main()
 {
-	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+	FragColor = vertexColor;
 }
 )";
 	unsigned int fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
