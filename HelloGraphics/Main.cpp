@@ -38,6 +38,10 @@ int main()
 	unsigned int vertexArrayObject = createTriangleVertexArrayObject();
 	unsigned int shaderProgram = createShaderProgram();
 
+	int nAttributes;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nAttributes);
+	std::cout << "Maximum number of vertex attributes " << nAttributes << std::endl;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
@@ -91,9 +95,10 @@ void clearWindow()
 unsigned int createTriangleVertexArrayObject()
 {
 	const float vertices[] = {
-		-0.5f, -0.5f, 0.0f, // bottom left
-		0.5f, -0.5f, 0.0f, // bottom right
-		0.0f,  0.5f, 0.0f // top center
+		// positions        // colors
+		0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // top
 	};
 
 	unsigned int vertexArrayObject;
@@ -105,8 +110,13 @@ unsigned int createTriangleVertexArrayObject()
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, triangleVtxCount, GL_FLOAT, GL_FALSE, triangleVtxCount * sizeof(float), (void*)0);
+	// position attribute
+	glVertexAttribPointer(0, triangleVtxCount, GL_FLOAT, GL_FALSE, triangleVtxCount * 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	// color attribute
+	glVertexAttribPointer(1, triangleVtxCount, GL_FLOAT, GL_FALSE, triangleVtxCount * 2 * sizeof(float), (void*)(triangleVtxCount * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	return vertexArrayObject;
 }
@@ -116,10 +126,15 @@ unsigned int createShaderProgram()
 	const char* vertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+
+out vec3 ourColor;
 
 void main()
 {
-	gl_Position = vec4(aPos, 1.0f); // directly give a vec3 to vec4's constructor
+
+	gl_Position = vec4(aPos, 1.0f);
+	ourColor = aColor;
 }
 )";
 	unsigned int vertexShader = createShader(vertexShaderSource, GL_VERTEX_SHADER);
@@ -127,12 +142,11 @@ void main()
 	const char* fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
-
-uniform vec4 ourColor;
+in vec3 ourColor;
 
 void main()
 {
-	FragColor = ourColor;
+	FragColor = vec4(ourColor, 1.0);
 }
 )";
 	unsigned int fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
