@@ -44,7 +44,12 @@ int main()
 
 		clearWindow();
 
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor"); // uniform location can be retrieved before using program
 		glUseProgram(shaderProgram);
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f); // updating uniform must be done after using program
+
 		glBindVertexArray(vertexArrayObject);
 		glDrawArrays(GL_TRIANGLES, 0, triangleVtxCount);
 		glBindVertexArray(0);
@@ -112,25 +117,22 @@ unsigned int createShaderProgram()
 #version 330 core
 layout (location = 0) in vec3 aPos;
 
-out vec4 vertexColor;
-
 void main()
 {
 	gl_Position = vec4(aPos, 1.0f); // directly give a vec3 to vec4's constructor
-	vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f); // dark red
 }
 )";
 	unsigned int vertexShader = createShader(vertexShaderSource, GL_VERTEX_SHADER);
 
 	const char* fragmentShaderSource = R"(
 #version 330 core
-in vec4 vertexColor;
-
 out vec4 FragColor;
+
+uniform vec4 ourColor;
 
 void main()
 {
-	FragColor = vertexColor;
+	FragColor = ourColor;
 }
 )";
 	unsigned int fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
