@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <Shader.h>
 
 #include <iostream>
 
@@ -8,8 +9,6 @@ GLFWwindow* createWindow();
 void processInput(GLFWwindow* window);
 void clearWindow();
 unsigned int createTriangleVertexArrayObject();
-unsigned int createShaderProgram();
-unsigned int createShader(const char* shaderSource, GLenum type);
 void onSetFramebufferSize(GLFWwindow* window, int width, int height);
 
 const unsigned int screenWidth = 800;
@@ -36,7 +35,7 @@ int main()
 	}
 
 	unsigned int vertexArrayObject = createTriangleVertexArrayObject();
-	unsigned int shaderProgram = createShaderProgram();
+	Shader myShader("shader.vert", "shader.frag");
 
 	int nAttributes;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nAttributes);
@@ -48,11 +47,7 @@ int main()
 
 		clearWindow();
 
-		float timeValue = glfwGetTime();
-		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor"); // uniform location can be retrieved before using program
-		glUseProgram(shaderProgram);
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f); // updating uniform must be done after using program
+		myShader.use();
 
 		glBindVertexArray(vertexArrayObject);
 		glDrawArrays(GL_TRIANGLES, 0, triangleVtxCount);
@@ -119,75 +114,6 @@ unsigned int createTriangleVertexArrayObject()
 	glEnableVertexAttribArray(1);
 
 	return vertexArrayObject;
-}
-
-unsigned int createShaderProgram()
-{
-	const char* vertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
-
-out vec3 ourColor;
-
-void main()
-{
-
-	gl_Position = vec4(aPos, 1.0f);
-	ourColor = aColor;
-}
-)";
-	unsigned int vertexShader = createShader(vertexShaderSource, GL_VERTEX_SHADER);
-
-	const char* fragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-in vec3 ourColor;
-
-void main()
-{
-	FragColor = vec4(ourColor, 1.0);
-}
-)";
-	unsigned int fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-
-	unsigned int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-
-	glLinkProgram(shaderProgram);
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	int success;
-	char infoLog[512];
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	return shaderProgram;
-}
-
-unsigned int createShader(const char* shaderSource, GLenum type)
-{
-	unsigned int shader = glCreateShader(type);
-	glShaderSource(shader, 1, &shaderSource, NULL);
-	glCompileShader(shader);
-
-	int success;
-	char infoLog[512];
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	return shader;
 }
 
 void processInput(GLFWwindow* window)
